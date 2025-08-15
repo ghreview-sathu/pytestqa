@@ -97,7 +97,7 @@ jobs:
                 },
                 {
                   "role": "user",
-                  "content": "Here is the pull request diff:\n\"\"\"${{ steps.prdiff.outputs.diff_content }}\"\"\""
+                  "content": "Here is the pull request diff:\n\"\"\${{ steps.prdiff.outputs.diff_content }}\"\"\"
                 },
                 {
                   "role": "user",
