@@ -44,6 +44,13 @@ jobs:
         run: |
           git fetch origin ${{ steps.prinfo.outputs.base_ref }} --depth=1
           git diff origin/${{ steps.prinfo.outputs.base_ref }}...HEAD > pr_diff.txt
+          
+      - name: Prepare PR diff content
+        id: prdiff
+        run: |
+          # Escape the diff to be JSON safe
+          DIFF_CONTENT=$(jq -Rs . < pr_diff.txt)
+          echo "diff_content=$DIFF_CONTENT" >> $GITHUB_OUTPUT
 
       - name: Read CODEGUIDELINE
         id: guideline
@@ -78,7 +85,7 @@ jobs:
                 },
                 {
                   "role": "user",
-                  "content": "Here is the pull request diff:\n$(cat pr_diff.txt)"
+                  "content": "Here is the pull request diff:\n${{ steps.prdiff.outputs.diff_content }}"
                 },
                 {
                   "role": "user",
@@ -102,7 +109,8 @@ jobs:
       - name: Post review as PR comment
         uses: marocchino/sticky-pull-request-comment@v2
         with:
-          pr-number: ${{ steps.prinfo.outputs.pr_number }}
+          # pr-number: ${{ steps.prinfo.outputs.pr_number }}
+          pr-number: ${{ github.event.inputs.pr_number }}
           message: |
             🤖 **AI Code Review**
             ${{ env.REVIEW }}
