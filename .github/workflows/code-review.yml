@@ -4,6 +4,13 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+  # Allow running manually from Actions tab
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to review manually"
+        required: false
+
 jobs:
   review:
     runs-on: ubuntu-latest
@@ -13,11 +20,30 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Determine PR and base branch
+        id: prinfo
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PR_NUMBER="${{ github.event.inputs.pr_number }}"
+            if [ -z "$PR_NUMBER" ]; then
+              echo "❌ You must provide a PR number when running manually."
+              exit 1
+            fi
+            BASE_REF=$(gh pr view $PR_NUMBER --json baseRefName -q .baseRefName)
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "base_ref=$BASE_REF" >> $GITHUB_OUTPUT
+          else
+            echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+            echo "base_ref=${{ github.base_ref }}" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Get PR diff
         id: diff
         run: |
-          git fetch origin ${{ github.base_ref }}
-          git diff origin/${{ github.base_ref }}...HEAD > pr_diff.txt
+          git fetch origin ${{ steps.prinfo.outputs.base_ref }} --depth=1
+          git diff origin/${{ steps.prinfo.outputs.base_ref }}...HEAD > pr_diff.txt
 
       - name: Read CODEGUIDELINE
         id: guideline
@@ -69,6 +95,7 @@ jobs:
       - name: Post review as PR comment
         uses: marocchino/sticky-pull-request-comment@v2
         with:
+          pr-number: ${{ steps.prinfo.outputs.pr_number }}
           message: |
             🤖 **AI Code Review**
             ${{ env.REVIEW }}
