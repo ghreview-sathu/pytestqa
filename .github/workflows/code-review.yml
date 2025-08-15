@@ -10,6 +10,9 @@ on:
       pr_number:
         description: "PR number to review manually"
         required: false
+      pr_branch:
+        description: 'Branch name of the PR'
+        required: false
 
 jobs:
   review:
@@ -42,8 +45,16 @@ jobs:
       - name: Get PR diff
         id: diff
         run: |
-          git fetch origin ${{ steps.prinfo.outputs.base_ref }} --depth=1
-          git diff origin/${{ steps.prinfo.outputs.base_ref }}...HEAD > pr_diff.txt
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            git fetch origin pull/${{ steps.prinfo.outputs.pr_number }}/head:pr_branch
+            git fetch origin ${{ steps.prinfo.outputs.base_ref }}:base_branch
+            git diff base_branch...pr_branch > pr_diff.txt
+          else
+            git fetch origin ${{ steps.prinfo.outputs.base_ref }} --depth=1
+            git diff origin/${{ steps.prinfo.outputs.base_ref }}...HEAD > pr_diff.txt
+          fi
+          echo "✅ Diff generated:"
+          head -n 20 pr_diff.txt || true
           
       - name: Prepare PR diff content
         id: prdiff
@@ -51,6 +62,7 @@ jobs:
           # Escape the diff to be JSON safe
           DIFF_CONTENT=$(jq -Rs . < pr_diff.txt)
           echo "diff_content=$DIFF_CONTENT" >> $GITHUB_OUTPUT
+          echo $DIFF_CONTENT
 
       - name: Read CODEGUIDELINE
         id: guideline
