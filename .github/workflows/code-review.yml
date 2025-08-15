@@ -1,0 +1,72 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get PR diff
+        id: diff
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
+          git diff origin/${{ github.base_ref }}...HEAD > pr_diff.txt
+
+      - name: Read CODEGUIDELINE
+        id: guideline
+        run: |
+          if [ -f CODEGUIDELINE ]; then
+            echo "GUIDELINE<<EOF" >> $GITHUB_ENV
+            cat CODEGUIDELINE >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo "GUIDELINE<<EOF" >> $GITHUB_ENV
+            echo "No project-specific guideline found." >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          fi
+
+      - name: Run AI review
+        id: ai_review
+        run: |
+          REVIEW=$(curl https://api.openai.com/v1/chat/completions \
+            -s \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
+            -d "{
+              \"model\": \"gpt-4o-mini\",
+              \"messages\": [
+                {
+                  \"role\": \"system\",
+                  \"content\": \"You are a strict senior engineer. Perform a code review.\"
+                },
+                {
+                  \"role\": \"user\",
+                  \"content\": \"Here are the project coding guidelines:\n${{ env.GUIDELINE }}\"
+                },
+                {
+                  \"role\": \"user\",
+                  \"content\": \"Here is the pull request diff:\n$(cat pr_diff.txt)\"
+                },
+                {
+                  \"role\": \"user\",
+                  \"content\": \"In addition to enforcing the guidelines, also give feedback on general code quality, readability, maintainability, and potential bugs.\"
+                }
+              ],
+              \"max_tokens\": 800
+            }" | jq -r '.choices[0].message.content')
+
+          echo "REVIEW<<EOF" >> $GITHUB_ENV
+          echo "$REVIEW" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Post review as PR comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          message: |
+            🤖 **AI Code Review**
+            ${{ env.REVIEW }}
