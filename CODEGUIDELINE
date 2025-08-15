@@ -1,0 +1,4 @@
+Rule1: Every test should have these 3 pytest markers - features, qtestIds, RP_COMPONENT.
+Rule2: Every test should validate something.  None of the test simply executes and pass.
+Rule3: Positive Tests starts with "test_...", negative tests starts with 'test_negative_..."
+Rule4: Check for test teardown, if test configures anything, check it clears out the configuration.
