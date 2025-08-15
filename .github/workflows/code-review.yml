@@ -61,7 +61,7 @@ jobs:
       - name: Run AI review
         id: ai_review
         run: |
-          REVIEW=$(curl https://api.openai.com/v1/chat/completions \
+          RESPONSE=$(curl https://api.openai.com/v1/chat/completions \
             -s \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
@@ -86,8 +86,15 @@ jobs:
                 }
               ],
               \"max_tokens\": 800
-            }" | jq -r '.choices[0].message.content')
+            })
+          echo "Raw API Response:"
+          echo "$RESPONSE"
+          REVIEW=$(echo $RESPONSE | jq -r '.choices[0].message.content')
 
+          echo "Extracted Review:"
+          echo "$REVIEW"
+            
+            
           echo "REVIEW<<EOF" >> $GITHUB_ENV
           echo "$REVIEW" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
