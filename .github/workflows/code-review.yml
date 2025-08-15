@@ -86,7 +86,7 @@ jobs:
                 }
               ],
               \"max_tokens\": 800
-            })
+            }")
           echo "Raw API Response:"
           echo "$RESPONSE"
           REVIEW=$(echo $RESPONSE | jq -r '.choices[0].message.content')
