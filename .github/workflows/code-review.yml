@@ -61,7 +61,7 @@ jobs:
         run: |
           # Escape the diff to be JSON safe
           DIFF_CONTENT=$(jq -Rs . < pr_diff.txt)
-          echo "diff_content=$DIFF_CONTENT" >> $GITHUB_OUTPUT
+          echo "diff_content=\"\"\"$DIFF_CONTENT\"\"\"" >> $GITHUB_OUTPUT
           echo $DIFF_CONTENT
 
       - name: Read CODEGUIDELINE
