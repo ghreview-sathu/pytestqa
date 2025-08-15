@@ -65,28 +65,28 @@ jobs:
             -s \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.OPENAI_API_KEY }}" \
-            -d "{
-              \"model\": \"gpt-4o-mini\",
-              \"messages\": [
+            -d '{
+              "model": "gpt-4o-mini",
+              "messages": [
                 {
-                  \"role\": \"system\",
-                  \"content\": \"You are a strict senior engineer. Perform a code review.\"
+                  "role": "system",
+                  "content": "You are a strict senior engineer. Perform a code review."
                 },
                 {
-                  \"role\": \"user\",
-                  \"content\": \"Here are the project coding guidelines:\n${{ env.GUIDELINE }}\"
+                  "role": "user",
+                  "content": "Here are the project coding guidelines:\n\'${{ env.GUIDELINE }}\'"
                 },
                 {
-                  \"role\": \"user\",
-                  \"content\": \"Here is the pull request diff:\n$(cat pr_diff.txt)\"
+                  "role": "user",
+                  "content": "Here is the pull request diff:\n\'$(cat pr_diff.txt)\'"
                 },
                 {
-                  \"role\": \"user\",
-                  \"content\": \"In addition to enforcing the guidelines, also give feedback on general code quality, readability, maintainability, and potential bugs.\"
+                  "role": "user",
+                  "content": "In addition to enforcing the guidelines, also give feedback on general code quality, readability, maintainability, and potential bugs."
                 }
               ],
-              \"max_tokens\": 800
-            }")
+              "max_tokens": 800
+            }')
           echo "Raw API Response:"
           echo "$RESPONSE"
           REVIEW=$(echo $RESPONSE | jq -r '.choices[0].message.content')
