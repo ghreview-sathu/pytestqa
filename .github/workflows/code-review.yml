@@ -74,11 +74,11 @@ jobs:
                 },
                 {
                   "role": "user",
-                  "content": "Here are the project coding guidelines:\n\'${{ env.GUIDELINE }}\'"
+                  "content": "Here are the project coding guidelines:\n${{ env.GUIDELINE }}"
                 },
                 {
                   "role": "user",
-                  "content": "Here is the pull request diff:\n\'$(cat pr_diff.txt)\'"
+                  "content": "Here is the pull request diff:\n$(cat pr_diff.txt)"
                 },
                 {
                   "role": "user",
