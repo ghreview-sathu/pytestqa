@@ -13,7 +13,10 @@ on:
       pr_branch:
         description: 'Branch name of the PR'
         required: false
-
+permissions:
+  pull-requests: write
+  contents: read
+  
 jobs:
   review:
     runs-on: ubuntu-latest
