@@ -127,7 +127,8 @@ jobs:
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           # pr-number: ${{ steps.prinfo.outputs.pr_number }}
-          number: ${{ github.event.inputs.pr_number }}
+          # number: ${{ github.event.inputs.pr_number }}
+          number: ${{ github.event_name == 'pull_request' && steps.prinfo.outputs.pr_number || github.event.inputs.pr_number }}
           message: |
             🤖 **AI Code Review**
             ${{ env.REVIEW }}
